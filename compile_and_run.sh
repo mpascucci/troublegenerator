@@ -1,2 +1,2 @@
 tsc
-node build/main.js
+node build/troublegen.js
