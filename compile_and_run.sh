@@ -1,2 +1,2 @@
 tsc
-node out/main.js
+node build/main.js
