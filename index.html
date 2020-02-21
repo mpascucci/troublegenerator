@@ -1,0 +1,89 @@
+<html>
+
+<head>
+  <script src="./build/troublegen.js"></script>
+  <title>Trouble generator</title>
+</head>
+<style type="text/css">
+  textarea {
+    cols : 40;
+    rows : 5;
+  }
+</style>
+
+<body>
+  <h1>Trouble Generator</h1>
+  <form name="mainForm">
+    <b>Rules:</b>
+    <br>
+    <textarea name="rulesText" cols="40" rows="8">
+dollar: G;A D;B --> G,D;A$B
+percent: G;A --> G;%A
+bar: C;A,B --> C;A|B
+strange: C;A --> #C;@A</textarea>
+    <textarea id="outputRulesTextArea" name="outRules" cols="40" rows="8" disabled=true></textarea>
+    <br>
+    <b>Leaves:</b>
+    <br>
+    <textarea name="leavesText" cols="40" rows="8">
+a,b,c
+d,e
+f,g</textarea>
+    <textarea id="outputPremisesTextArea" name="outPremises" cols="40" rows="8" disabled=true></textarea>
+    <br>
+    Number of statements:
+    <br>
+    <input type="number" name="statementsNumber" value=1>
+    <input type="button" value="Give me trouble!" name="okButton" onclick="parseForm(this.form)">
+  </form>
+  <br>
+  <b>Result:</b>
+  <br>
+  <textarea id="outputTextArea" cols="80" rows="10"></textarea>
+</body>
+
+<script>
+ function parseForm(form) {
+    let rulesTexts = form.rulesText.value.split('\n');
+    let leavesTexts = form.leavesText.value.split('\n');
+    let rules = [];
+    let premises = [];
+    for (let i in rulesTexts) {
+      if (rulesTexts[i]){
+        rules.push(parseRule(rulesTexts[i]));
+      }
+    }
+    for (let i in leavesTexts) {
+      if (leavesTexts[i]){
+        premises.push(parseFormula(leavesTexts[i]));
+      }
+    }
+    
+    // console.log(rules);
+    // console.log(premises);
+    let outputRulesTextArea = document.getElementById("outputRulesTextArea");
+    let rulesOutTexts = [];
+    for (let i in rules) {
+      rulesOutTexts.push(rules[i].toString());
+    }
+    outputRulesTextArea.value = rulesOutTexts.join('\n');
+
+    let outputPremisesTextArea = document.getElementById("outputPremisesTextArea");
+    let premisesOutTexts = [];
+    for (let i in premises) {
+      premisesOutTexts.push(premises[i].toString());
+    }
+    outputPremisesTextArea.value = premisesOutTexts.join('\n');
+
+    let outTextArea = document.getElementById("outputTextArea");
+    let conclusions = [];
+    for (let i=0; i<form.statementsNumber.value; i++) {
+      conclusions.push(randomConclusion(premises, rules));
+      console.log(i);
+    }
+    outTextArea.value = conclusions.join('\n');
+    console.log("done");
+  }
+</script>
+
+</html>
