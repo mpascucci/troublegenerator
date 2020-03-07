@@ -1,0 +1,118 @@
+<!-- Create a simple CodeMirror instance -->
+<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
+
+<head>
+  <link rel="stylesheet" href="codemirror/lib/codemirror.css">
+  <script src="codemirror/lib/codemirror.js"></script>
+  <script src="codemirror/addon/mode/simple.js"></script>
+  <script src="nearley/nearley.js"></script>
+  <script src="nearley/grammar.js"></script>
+  <script src="build/troublegen.js"></script>
+</head>
+
+<body style="background-color: gray">
+<h1>TroubleGenerator</h1>
+<div >
+<textarea id='TextAreaAxioms'>
+# Axioms
+ax1: --> A,~A
+ax2: --> A,B
+</textarea>
+<br>
+<textarea id='TextAreaRules'>
+# Rules
+cut: C;A D;A --> C,D
+dollar: C;A D;B --> C,D;(A$B)
+strange: C;A D;A --> C,D,A
+</textarea>
+</div>
+<br>
+<div>
+  <form name="mainForm">
+    leaves per axiom: <input type="number" name="leavesNumber" value=1>
+    output: <input type="number" name="statementsNumber" value=1>
+    <input type="button" value="Give me trouble!" name="okButton" onclick="parseForm(this.form)">
+  </form>
+  <br>
+  <b>Leaves:</b><br>
+  <textarea id="leavesTextArea" cols="80" rows="2"></textarea>
+  <br>
+  <b>Result:</b>
+  <br>
+  <textarea id="outputTextArea" cols="80" rows="10"></textarea>
+
+</div>
+
+</body>
+
+<script>
+  CodeMirror.defineSimpleMode("LogicRules", {
+    start: [
+        {regex: /#.*/, token: "comment"},
+        {regex:/((\w)+)\s*(:)/, token: ["variable-3",null]},
+        {regex:/-->/, token: "keyword"},
+        {regex:/(([^\s:]+)(;)([^\s]+))/, token: "variable-2"},
+        {regex:/([^\s:]+)/, token: "atom"},
+    ],
+    meta: {
+      lineComment: "#"
+    }
+  });
+
+  let outTextArea = document.getElementById("outputTextArea");
+  let leavesTextArea = document.getElementById("leavesTextArea");
+
+  var myTextarea = document.getElementById("TextAreaRules")
+  var rule_editor = CodeMirror.fromTextArea(myTextarea, {
+    lineNumbers: true,
+    mode:  "LogicRules",
+  });
+  rule_editor.setSize(500, 100);
+  var myTextarea = document.getElementById("TextAreaAxioms")
+  var axiom_editor = CodeMirror.fromTextArea(myTextarea, {
+    lineNumbers: true,
+    mode:  "LogicRules"
+  });
+  axiom_editor.setSize(500, 100);
+
+  function nearlayParse(text) {
+    const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar));
+    return parser.feed(text+"\n").results[0];
+  }
+
+  function filterComments(ast) {
+    let out = [];
+    for (const i in ast){
+      let curr = ast[i];
+      if (curr.type !== "comment") {
+        out.push(curr);
+      }
+    }
+    return out;
+  }
+
+  function parseForm(form) {
+    leavesTextArea.value = "";
+    let rules = filterComments(nearlayParse(rule_editor.getValue()));
+    let axioms = filterComments(nearlayParse(axiom_editor.getValue()));
+    let alphabet = ['b','a'];
+    let leaves = [];
+    for (const i in axioms){
+      let axiom = axioms[i];
+      // console.log("axiom", axiom);
+      for (let j=0; j<form.leavesNumber.value; j++) {
+        let leave = generateLeave(axiom,alphabet,false);
+        // console.log("leave", leave.formulas);
+        leaves.push(leave);
+        leavesTextArea.value += `(${sequentToString(leave)}) `;
+      }
+    }
+
+    let result = applyRandomRule(rules,leaves);
+    // console.log(nearlayParse(rule_editor.getValue()));
+    outTextArea.value = `${result.rule} : ${result.result}`;
+  }
+
+
+
+</script>
