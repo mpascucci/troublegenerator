@@ -1,102 +1,119 @@
-<html>
+<!-- Create a simple CodeMirror instance -->
+<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
 
 <head>
-  <script src="./nearley/nearley.js"></script>
-  <script src="./nearley/grammar.js"></script>
-  <script src="./build/troublegen.js"></script>
-  <title>Trouble generator</title>
+  <link rel="stylesheet" href="codemirror/lib/codemirror.css">
+  <script src="codemirror/lib/codemirror.js"></script>
+  <script src="codemirror/addon/mode/simple.js"></script>
+  <script src="nearley/nearley.js"></script>
+  <script src="nearley/grammar.js"></script>
+  <script src="build/troublegen.js"></script>
 </head>
-<style type="text/css">
-  textarea {
-    cols : 40;
-    rows : 5;
-  }
-</style>
 
-<body>
-  <h1>Trouble Generator</h1>
+<body style="background-color: gray">
+<h1>TroubleGenerator</h1>
+<div >
+<textarea id='TextAreaAxioms'>
+# Axioms
+ax1: --> A,~A
+ax2: --> A,B
+</textarea>
+<br>
+<textarea id='TextAreaRules'>
+# Rules
+cut: C;A D;A --> C,D
+dollar: C;A D;B --> C,D;(A$B)
+strange: C;A D;A --> C,D,A
+</textarea>
+</div>
+<br>
+<div>
   <form name="mainForm">
-    <b>Rules:</b>
-    <br>
-    <textarea name="rulesText" cols="40" rows="8">
-dollar: G;A D;B --> G,D;A$B
-percent: G;A --> G;%A
-bar: C;A,B --> C;A|B
-strange: C;A --> #C;@A</textarea>
-    <textarea id="outputRulesTextArea" name="outRules" cols="40" rows="8" disabled=true></textarea>
-    <br>
-    <b>Leaves:</b>
-    <br>
-    <textarea name="leavesText" cols="40" rows="8">
-a,b,c
-d,e
-f,g</textarea>
-    <textarea id="outputPremisesTextArea" name="outPremises" cols="40" rows="8" disabled=true></textarea>
-    <br>
-    Number of statements:
-    <br>
-    <input type="number" name="statementsNumber" value=1>
+    leaves per axiom: <input type="number" name="leavesNumber" value=1>
+    output: <input type="number" name="statementsNumber" value=1>
+    <br><br>
     <input type="button" value="Give me trouble!" name="okButton" onclick="parseForm(this.form)">
   </form>
   <br>
+  <b>Leaves:</b><br>
+  <textarea id="leavesTextArea" cols="65" rows="2"></textarea>
+  <br>
   <b>Result:</b>
   <br>
-  <textarea id="outputTextArea" cols="80" rows="10"></textarea>
+  <textarea id="outputTextArea" cols="65" rows="10"></textarea>
+
+</div>
+
 </body>
 
 <script>
-  // Create a Parser object from our grammar.
+  CodeMirror.defineSimpleMode("LogicRules", {
+    start: [
+        {regex: /#.*/, token: "comment"},
+        {regex:/((\w)+)\s*(:)/, token: ["variable-3",null]},
+        {regex:/-->/, token: "keyword"},
+        {regex:/(([^\s:]+)(;)([^\s]+))/, token: "variable-2"},
+        {regex:/([^\s:]+)/, token: "atom"},
+    ],
+    meta: {
+      lineComment: "#"
+    }
+  });
+
+  let outTextArea = document.getElementById("outputTextArea");
+  let leavesTextArea = document.getElementById("leavesTextArea");
+
+  var myTextarea = document.getElementById("TextAreaRules")
+  var rule_editor = CodeMirror.fromTextArea(myTextarea, {
+    lineNumbers: true,
+    mode:  "LogicRules",
+  });
+  rule_editor.setSize(500, 100);
+  var myTextarea = document.getElementById("TextAreaAxioms")
+  var axiom_editor = CodeMirror.fromTextArea(myTextarea, {
+    lineNumbers: true,
+    mode:  "LogicRules"
+  });
+  axiom_editor.setSize(500, 100);
 
   function nearlayParse(text) {
     const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar));
-    let text = parser.feed(text+"\n").results;
-    parser = {};
-    return text
-
+    return parser.feed(text+"\n").results[0];
   }
 
- function parseForm(form) {
-    console.log(nearlayParse(form.rulesText.value));
-    let rulesTexts = form.rulesText.value.split('\n');
-    let leavesTexts = form.leavesText.value.split('\n');
-    let rules = [];
-    let premises = [];
-    for (let i in rulesTexts) {
-      if (rulesTexts[i]){
-        rules.push(parseRule(rulesTexts[i]));
+  function filterComments(ast) {
+    let out = [];
+    for (const i in ast){
+      let curr = ast[i];
+      if (curr.type !== "comment") {
+        out.push(curr);
       }
     }
-    for (let i in leavesTexts) {
-      if (leavesTexts[i]){
-        premises.push(parseFormula(leavesTexts[i]));
-      }
-    }
-    
-    // console.log(rules);
-    // console.log(premises);
-    let outputRulesTextArea = document.getElementById("outputRulesTextArea");
-    let rulesOutTexts = [];
-    for (let i in rules) {
-      rulesOutTexts.push(rules[i].toString());
-    }
-    outputRulesTextArea.value = rulesOutTexts.join('\n');
-
-    let outputPremisesTextArea = document.getElementById("outputPremisesTextArea");
-    let premisesOutTexts = [];
-    for (let i in premises) {
-      premisesOutTexts.push(premises[i].toString());
-    }
-    outputPremisesTextArea.value = premisesOutTexts.join('\n');
-
-    let outTextArea = document.getElementById("outputTextArea");
-    let conclusions = [];
-    for (let i=0; i<form.statementsNumber.value; i++) {
-      conclusions.push(randomConclusion(premises, rules));
-      console.log(i);
-    }
-    outTextArea.value = conclusions.join('\n');
-    console.log("done");
+    return out;
   }
+
+  function parseForm(form) {
+    leavesTextArea.value = "";
+    let rules = filterComments(nearlayParse(rule_editor.getValue()));
+    let axioms = filterComments(nearlayParse(axiom_editor.getValue()));
+    let alphabet = ['b','a'];
+    let leaves = [];
+    for (const i in axioms){
+      let axiom = axioms[i];
+      // console.log("axiom", axiom);
+      for (let j=0; j<form.leavesNumber.value; j++) {
+        let leave = generateLeave(axiom,alphabet,false);
+        // console.log("leave", leave.formulas);
+        leaves.push(leave);
+        leavesTextArea.value += `(${sequentToString(leave)}) `;
+      }
+    }
+
+    let result = applyRandomRule(rules,leaves);
+    // console.log(nearlayParse(rule_editor.getValue()));
+    outTextArea.value = `${result.rule} : ${result.result}`;
+  }
+
+
+
 </script>
-
-</html>
