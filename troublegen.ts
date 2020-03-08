@@ -52,6 +52,9 @@ interface Formula {
 
 class Formula implements Formula {
   constructor(public symbol: string, public negative: boolean) { };
+  public copy() {
+      return new Formula(this.symbol,this.negative);
+  }
 }
 
 interface Sequent {
@@ -60,6 +63,13 @@ interface Sequent {
 
 class Sequent implements Sequent {
   constructor(public formulas: Formula[]) { };
+  public copy() {
+      let contents: Formula[] = []
+      for (let i = 0; i < this.formulas.length; i++) {
+          contents.push(this.formulas[i].copy());
+      }
+      return new Sequent(contents);
+  }
 }
 
 function get_common_formulas(s1: Sequent, s2: Sequent) {
@@ -141,6 +151,8 @@ function sequentToString(s: Sequent) {
 
 function applyBinaryRule(rule, s1: Sequent, s2: Sequent) {
   // fare il check sulle condizioni
+  s1 = s1.copy();
+  s2 = s2.copy();
   let applicable = true;
   let result = null;
   if ((rule.premises[0].active.length > s1.formulas.length) ||
@@ -241,14 +253,13 @@ function applyRandomRule(rules, leaves:Sequent[]) {
 
   let premises:Sequent[] = [];
   for (let i=0; i<arity; i++) {
-    premises.push(leaves.pop());
+    premises.push(shuffle(leaves).pop());
   }
 
   let result = applyRule(rule,premises);
   // console.log(result);
-  if (result.is_applicable) {
-    return {rule:rule.name, result:result.result};
-  }
+  return {rule:rule.name, premises:premises, result:result.result};
+
   
 }
 
@@ -366,4 +377,4 @@ function test() {
   // console.log(formulaToSymbol(s1.formulas[1]));
   // console.log(applyRandomRule([rule,rule],[s1,s2]));
 }
-test();
+// test();

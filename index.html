@@ -29,16 +29,16 @@ strange: C;A D;A --> C,D,A
 <br>
 <div>
   <form name="mainForm">
-    leaves per axiom: <input type="number" name="leavesNumber" value=1>
+    leaves per axiom: <input type="number" name="leavesNumber" value=3>
     output: <input type="number" name="statementsNumber" value=1>
     <br><br>
     <input type="button" value="Give me trouble!" name="okButton" onclick="parseForm(this.form)">
   </form>
   <br>
-  <b>Leaves:</b><br>
+  <b>Generated leaves:</b><br>
   <textarea id="leavesTextArea" cols="65" rows="2"></textarea>
   <br>
-  <b>Result:</b>
+  <b>Random result:</b>
   <br>
   <textarea id="outputTextArea" cols="65" rows="10"></textarea>
 
@@ -96,13 +96,16 @@ strange: C;A D;A --> C,D,A
     leavesTextArea.value = "";
     let rules = filterComments(nearlayParse(rule_editor.getValue()));
     let axioms = filterComments(nearlayParse(axiom_editor.getValue()));
-    let alphabet = ['b','a'];
+    let alphabet = ['f','e','d','c','b','a'];
     let leaves = [];
     for (const i in axioms){
       let axiom = axioms[i];
       // console.log("axiom", axiom);
+      let temp_abc = alphabet.slice();
       for (let j=0; j<form.leavesNumber.value; j++) {
-        let leave = generateLeave(axiom,alphabet,false);
+        let leave = generateLeave(axiom,temp_abc,false);
+        temp_abc.pop();
+        // alphabet.pop();
         // console.log("leave", leave.formulas);
         leaves.push(leave);
         leavesTextArea.value += `(${sequentToString(leave)}) `;
@@ -110,8 +113,12 @@ strange: C;A D;A --> C,D,A
     }
 
     let result = applyRandomRule(rules,leaves);
-    // console.log(nearlayParse(rule_editor.getValue()));
-    outTextArea.value = `${result.rule} : ${result.result}`;
+    // console.log(result);
+    let selected_leaves = [];
+    for (const i in result.premises) {
+      selected_leaves.push(`(${sequentToString(result.premises[i])})`);
+    }
+    outTextArea.value = `${result.rule}[${selected_leaves}] = ${result.result}`;
   }
 
 
