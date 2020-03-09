@@ -123,7 +123,6 @@ function generateLeave(axiom, alphabet, shuffleAlphapet=false) {
     let re = /([A-Z])/
     let m = symbol.match(re);
     while (m) {
-      console.log(m);
       if (!associations[m[0]]) {
         associations[m[0]] = this_alphabet.pop();
       }
@@ -250,7 +249,7 @@ function applyRule(rule, premises: Sequent[]) {
   assert(rule.consequences.length === 1, "only one sequent allowed in consequence");
   if (arity === 2) {
     return applyBinaryRule(rule, premises[0], premises[1]);
-  } else if (arity === 2) {
+  } else if (arity === 1) {
     throw new CustomError("unary rules not implemented yet");
   }
 }
@@ -290,40 +289,40 @@ function test() {
     ]
   }
 
-  let rule = {
-    "type": "rule",
-    "name": "cut",
-    "premises": [
-      {
-        "type": "sequent",
-        "context": [
-          "C"
-        ],
-        "active": [
-          "A"
-        ]
-      },
-      {
-        "type": "sequent",
-        "context": [
-          "D"
-        ],
-        "active": [
-          "~A"
-        ]
-      }
-    ],
-    "consequences": [
-      {
-        "type": "sequent",
-        "context": [],
-        "active": [
-          "C",
-          "D"
-        ]
-      }
-    ]
-  }
+  // let rule = {
+  //   "type": "rule",
+  //   "name": "cut",
+  //   "premises": [
+  //     {
+  //       "type": "sequent",
+  //       "context": [
+  //         "C"
+  //       ],
+  //       "active": [
+  //         "A"
+  //       ]
+  //     },
+  //     {
+  //       "type": "sequent",
+  //       "context": [
+  //         "D"
+  //       ],
+  //       "active": [
+  //         "~A"
+  //       ]
+  //     }
+  //   ],
+  //   "consequences": [
+  //     {
+  //       "type": "sequent",
+  //       "context": [],
+  //       "active": [
+  //         "C",
+  //         "D"
+  //       ]
+  //     }
+  //   ]
+  // }
   let rule2 = {
     "type": "rule",
     "name": "cut",
@@ -336,26 +335,16 @@ function test() {
         "active": [
           "A"
         ]
-      },
-      {
-        "type": "sequent",
-        "context": [
-          "D"
-        ],
-        "active": [
-          "B"
-        ]
       }
     ],
     "consequences": [
       {
         "type": "sequent",
         "context": [
-          "C",
-          "D"
+          "C"
         ],
         "active": [
-          "A%B"
+          "~A"
         ]
       }
     ]
@@ -369,11 +358,11 @@ function test() {
   // console.log(leaves[2]);
  
 
-  // let s1 = new Sequent([
-  //   new Formula('c',true),
-  //   new Formula('d',false),
-  //   // new Formula('u',true)
-  // ]);
+  let s1 = new Sequent([
+    new Formula('a',true),
+    new Formula('a',false),
+    // new Formula('u',true)
+  ]);
 
   // let s2 = new Sequent([
   //   new Formula('a',true),
@@ -381,11 +370,11 @@ function test() {
   // ]);
 
   // console.log(get_common_formulas(s1,s2));
-  // console.log(applyRule(rule2,[s1,s2]));
+  console.log(applyRule(rule2,[s1]));
   // console.log(formulaToSymbol(s1.formulas[1]));
   // console.log(applyRandomRule([rule,rule],[s1,s2]));
-  console.log(
-    generateLeave(axiom, alphabet, false)
-  );
+  // console.log(
+  //   generateLeave(axiom, alphabet, false)
+  // );
 }
 test();
