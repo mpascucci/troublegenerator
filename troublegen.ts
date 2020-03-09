@@ -116,14 +116,22 @@ function generateLeave(axiom, alphabet, shuffleAlphapet=false) {
     let negative = parsed.negative;
     let symbol = parsed.symbol;
 
-    if (!associations[symbol]) {
-      // chose a random letter and remove it from the alphabet
-      if (this_alphabet.length == 0) {
-        throw (new CustomError(`too many unique formulas in axiom "${axiom.name}"`));
-      }
-      associations[symbol] = this_alphabet.pop();
+    // chose a random letter and remove it from the alphabet
+    if (this_alphabet.length == 0) {
+      throw (new CustomError(`too many unique formulas in axiom "${axiom.name}"`));
     }
-    formulas.push(new Formula(associations[symbol], negative))
+    let re = /([A-Z])/
+    let m = symbol.match(re);
+    while (m) {
+      console.log(m);
+      if (!associations[m[0]]) {
+        associations[m[0]] = this_alphabet.pop();
+      }
+      symbol = symbol.replace(m[0],associations[m[0]])
+      m = symbol.match(re);
+    }
+
+    formulas.push(new Formula(symbol, negative))
   }
   return new Sequent(formulas);
 }
@@ -353,7 +361,7 @@ function test() {
     ]
   }
 
-  // let alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'];
+  let alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'];
   // let leaves = []; 
   // for (let i=0; i<3; i++) {
   //   leaves.push(generateLeave(axiom, alphabet,false));
@@ -361,20 +369,23 @@ function test() {
   // console.log(leaves[2]);
  
 
-  let s1 = new Sequent([
-    new Formula('c',true),
-    new Formula('d',false),
-    // new Formula('u',true)
-  ]);
+  // let s1 = new Sequent([
+  //   new Formula('c',true),
+  //   new Formula('d',false),
+  //   // new Formula('u',true)
+  // ]);
 
-  let s2 = new Sequent([
-    new Formula('a',true),
-    new Formula('d',true)
-  ]);
+  // let s2 = new Sequent([
+  //   new Formula('a',true),
+  //   new Formula('d',true)
+  // ]);
 
   // console.log(get_common_formulas(s1,s2));
   // console.log(applyRule(rule2,[s1,s2]));
   // console.log(formulaToSymbol(s1.formulas[1]));
   // console.log(applyRandomRule([rule,rule],[s1,s2]));
+  console.log(
+    generateLeave(axiom, alphabet, false)
+  );
 }
-// test();
+test();
