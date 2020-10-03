@@ -1,4 +1,9 @@
 # Trouble Generator
+Enter axioms and rules, you'll get a randomly generated provable formula.
+
+# Demo
+This project is just an sketch, an a veri embional stage. Still you can have a taste here:
+http://makeitaflair.altervista.org/troublegenerator/
 
 ## install
 1. install [nvm](https://github.com/nvm-sh/nvm)
