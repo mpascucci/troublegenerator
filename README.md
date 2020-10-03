@@ -2,7 +2,8 @@
 Enter axioms and rules, you'll get a randomly generated provable formula.
 
 # Demo
-This project is just an sketch, an a veri embional stage. Still you can have a taste here:
+This project is just an sketch for a proof of principle.
+You can have a taste here of what it is meant to be:
 http://makeitaflair.altervista.org/troublegenerator/
 
 ## install
